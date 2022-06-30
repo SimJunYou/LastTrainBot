@@ -1,17 +1,16 @@
-if __name__ == "__main__":
-    from dotenv import load_dotenv
-
-    load_dotenv()  # Only run this part in dev env
-
 import os
 import logging
-from telegram import ChatAction, ParseMode
+from dotenv import load_dotenv, find_dotenv
+from telegram import ParseMode
 from telegram.ext import CommandHandler, Updater
 
 from data import loadTrainTimingData
 from utils import cleanForMarkdown, getSimilarStations
 
-
+try:  # Only need to run this func in dev env
+    load_dotenv()
+except:  # Fail silently in prod
+    pass
 TELEGRAM_TOKEN = os.environ["TELEGRAM_API"]  # Load in Telegram bot token
 TRAIN_TIME_DATA = loadTrainTimingData(
     "train-timing.json"
