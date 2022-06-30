@@ -6,10 +6,9 @@ if __name__ == "__main__":
 import os
 from telegram import Update, ChatAction, ParseMode
 from telegram.ext import CommandHandler, Updater
-from difflib import SequenceMatcher as SM
 
 from data import loadTrainTimingData
-from utils import cleanForMarkdown
+from utils import cleanForMarkdown, getSimilarStations
 
 TELEGRAM_TOKEN = os.environ["TELEGRAM_API"]  # Load in Telegram bot token
 TRAIN_TIME_DATA = loadTrainTimingData(
@@ -45,14 +44,7 @@ def command_queryStation(update, context):
 
     # Handle the case where user input doesn't exactly match
     if stationName not in TRAIN_TIME_DATA:
-        similarity = [
-            {
-                "station": eachStation,
-                "ratio": SM(None, eachStation.name, stationName).ratio(),
-            }
-            for eachStation in TRAIN_TIME_DATA.values()
-        ]
-        similarity.sort(key=lambda x: x["ratio"], reverse=True)
+        similarity = getSimilarStations(stationName, TRAIN_TIME_DATA.values())
 
         stationName = cleanForMarkdown(stationName)
         topSimRatio = similarity[0]["ratio"]
@@ -105,6 +97,7 @@ def command_queryStation(update, context):
     lineInformation = TRAIN_TIME_DATA[stationName].getLineInformation()
     timingsMessages = TRAIN_TIME_DATA[stationName].getFormattedTimings()
 
+    # Send the station name + line information, followed by timing info in a new message
     update.message.reply_text(
         f"*{stationName} Station*\n_{lineInformation}_",
         parse_mode=ParseMode.MARKDOWN_V2,

@@ -28,13 +28,13 @@ TRAIN_LINE_EMOJI = {
     "CE": "🟠",
     "DT": "🔵",
     "TE": "🟤",
-    "PT": "🚋", # Punggol LRT
+    "PT": "🚋",  # Punggol LRT
     "PE": "🚋",
     "PW": "🚋",
-    "ST": "🚋", # Sengkang LRT
+    "ST": "🚋",  # Sengkang LRT
     "SE": "🚋",
     "SW": "🚋",
-    "BP": "🚋", # Bukit Panjang LRT
+    "BP": "🚋",  # Bukit Panjang LRT
     "S": "🏖️",  # Sentosa
 }
 
@@ -61,26 +61,26 @@ class TrainStation:
             subtemplate = f"Towards {eachDest['dest']}: *{eachDest['last']}*\n"
             template += subtemplate
         return template
-    
+
     def getLineInformation(self):
-        """ Returns multiple lines, each line is line color emojis + corresponding station code """
+        """Returns multiple lines, each line is line color emojis + corresponding station code"""
         output = []
         for eachCode in self.codes:
-            if len(eachCode) == 2: # Sentosa train station
+            if len(eachCode) == 2:  # Sentosa train station
                 output.append(TRAIN_LINE_EMOJI["S"] + " " + eachCode)
             else:
                 output.append(TRAIN_LINE_EMOJI[eachCode[:2]] + " " + eachCode)
         return "\n".join(output)
 
     def getCleanedName(self):
-        """ Escape all characters not compatible with MarkdownV2 """
+        """Escape all characters not compatible with MarkdownV2"""
         return self.name.replace("-", "\-")
 
     def getEmojiedName(self):
-        """ Returns station name in bold with line color emojis at the back """
+        """Returns station name in bold with line color emojis at the back"""
         emojis = []
         for eachCode in self.codes:
-            if len(eachCode) == 2: # Sentosa train station
+            if len(eachCode) == 2:  # Sentosa train station
                 emojis.append(TRAIN_LINE_EMOJI["S"])
             else:
                 emojis.append(TRAIN_LINE_EMOJI[eachCode[:2]])
@@ -91,7 +91,6 @@ def loadTrainTimingData(path):
     with open(path) as f:
         lastTrainData = json.load(f)
         allTrainStations = dict()
-        stationNames = list()
         for eachStation in lastTrainData:
             allTrainStations[eachStation["name"]] = TrainStation(eachStation)
         return allTrainStations
