@@ -1,9 +1,9 @@
 import os
 import sys
 import logging
-from dotenv import load_dotenv, find_dotenv
-from telegram import ParseMode
-from telegram.ext import CommandHandler, Updater
+from dotenv import load_dotenv
+from telegram import ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import CommandHandler, Updater, CallbackQueryHandler
 
 from data import loadTrainTimingData
 from utils import cleanForMarkdown, getSimilarStations
@@ -51,24 +51,18 @@ def command_queryStation(update, context):
         )
 
         if 0.7 <= topSimRatio < 0.9:
-
             # Not that good, but good enough as the top suggestion
+            keyboard = [
+                [
+                    InlineKeyboardButton("Yes", callback_data=topSimStation.name),
+                    InlineKeyboardButton("No", callback_data="invalid"),
+                ]
+            ]
+
             update.message.reply_text(
                 f"*Couldn't find {stationName}\!* Did you mean *_{topSimStation.getCleanedName()}_*?",
                 parse_mode=ParseMode.MARKDOWN_V2,
-            )
-            update.message.reply_text(f"Here's a few more suggestions:")
-            update.message.reply_text(
-                "\n".join(
-                    [
-                        x["station"].getEmojiedName()
-                        + " _\("
-                        + str(round(100 * x["ratio"], 2))
-                        + "% similar\)_"
-                        for x in similarity[:5]
-                    ]
-                ),
-                parse_mode=ParseMode.MARKDOWN_V2,
+                reply_markup=InlineKeyboardMarkup(keyboard),
             )
             return
         elif topSimRatio < 0.7:
@@ -96,19 +90,7 @@ def command_queryStation(update, context):
         stationName = topSimStation.getCleanedName()
 
     log.info("Sending out info for %s", stationName)
-
-    lineInformation = TRAIN_TIME_DATA[stationName].getLineInformation()
-    timingsMessages = TRAIN_TIME_DATA[stationName].getFormattedTimings()
-
-    # Send the station name + line information, followed by timing info in a new message
-    update.message.reply_text(
-        f"*{stationName} Station*\n_{lineInformation}_",
-        parse_mode=ParseMode.MARKDOWN_V2,
-    )
-
-    for eachMsg in timingsMessages:
-        update.message.reply_text(eachMsg, parse_mode=ParseMode.MARKDOWN_V2)
-
+    sendTrainTimingInfo(stationName, update.message)
     log.info("Query from %s completed", update.message.chat.username)
 
 
@@ -119,14 +101,42 @@ def command_start(update, context):
     log.info("Start request from %s completed", update.message.chat.username)
 
 
+def button_callback(update, context):
+    query = update.callback_query
+    log.info("Callback is %s", query.data)
+    query.answer()
+    if query.data == "invalid":
+        query.edit_message_text(text="You can try searching again using /check.")
+        log.info("Callback completed")
+    else:
+        query.delete_message()
+        sendTrainTimingInfo(query.data, update.callback_query.message)
+        log.info("Callback completed")
+
+
+def sendTrainTimingInfo(stationName, message):
+    lineInformation = TRAIN_TIME_DATA[stationName].getLineInformation()
+    timingsMessages = TRAIN_TIME_DATA[stationName].getFormattedTimings()
+
+    # Send the station name + line information, followed by timing info in a new message
+    message.reply_text(
+        f"*{stationName} Station*\n_{lineInformation}_",
+        parse_mode=ParseMode.MARKDOWN_V2,
+    )
+
+    for eachMsg in timingsMessages:
+        message.reply_text(eachMsg, parse_mode=ParseMode.MARKDOWN_V2)
+
+
 updater = Updater(TELEGRAM_TOKEN)
 dispatcher = updater.dispatcher
 
+dispatcher.add_handler(CallbackQueryHandler(button_callback))
 dispatcher.add_handler(CommandHandler("start", command_start))  # Start command
-
 dispatcher.add_handler(
     CommandHandler("check", command_queryStation)
 )  # Actual query command
+
 
 log.info("Bot started")
 updater.start_polling()
