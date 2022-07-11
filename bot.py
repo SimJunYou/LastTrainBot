@@ -28,7 +28,7 @@ log.info("Starting bot...")
 
 
 def command_queryStation(update, context):
-    log.info("Query from user %s", update.message.chat.username)
+    log.info("Query from user %s", update.message.from_user.username)
     log.info("Message content: [%s]", update.message.text)
 
     queryParams = context.args
@@ -92,18 +92,18 @@ def command_queryStation(update, context):
 
     log.info("Sending out info for %s", stationName)
     sendTrainTimingInfo(stationName, update.message)
-    log.info("Query from %s completed", update.message.chat.username)
+    log.info("Query from %s completed", update.message.from_user.username)
 
 
 def command_start(update, context):
-    log.info("Start request from %s", update.message.chat.username)
+    log.info("Start request from %s", update.message.from_user.username)
     startMsg = "*Hello\! I'm LastTrainBot\.* Just use `/check <station name>` and I'll tell you the last times for that station\."
     update.message.reply_text(startMsg, parse_mode=ParseMode.MARKDOWN_V2)
-    log.info("Start request from %s completed", update.message.chat.username)
+    log.info("Start request from %s completed", update.message.from_user.username)
 
 
 def command_fun(update, context):
-    log.info("Fun request from %s", update.message.chat.username)
+    log.info("Fun request from %s", update.message.from_user.username)
     queryParams = context.args
     if len(queryParams) == 0:
         update.message.reply_text("Ask a question!")
@@ -114,7 +114,7 @@ def command_fun(update, context):
         update.message.reply_text("Yes!")
     else:
         update.message.reply_text("I don't know :(")
-    log.info("Fun request from %s completed", update.message.chat.username)
+    log.info("Fun request from %s completed", update.message.from_user.username)
 
 
 def button_callback(update, context):
