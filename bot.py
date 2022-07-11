@@ -13,6 +13,7 @@ try:  # Only need to run this func in dev env
 except:  # Fail silently in prod
     pass
 TELEGRAM_TOKEN = os.environ["TELEGRAM_API"]  # Load in Telegram bot token
+QUESTION = os.environ["QUESTION"]  # Just for fun :)
 TRAIN_TIME_DATA = loadTrainTimingData(
     "train-timing.json"
 )  # Load data from the json file
@@ -101,6 +102,21 @@ def command_start(update, context):
     log.info("Start request from %s completed", update.message.chat.username)
 
 
+def command_fun(update, context):
+    log.info("Fun request from %s", update.message.chat.username)
+    queryParams = context.args
+    if len(queryParams) == 0:
+        update.message.reply_text("Ask a question!")
+        log.info("Ending since query is empty")
+        return
+    question = " ".join(queryParams)
+    if question.lower() == QUESTION:
+        update.message.reply_text("Yes!")
+    else:
+        update.message.reply_text("I don't know :(")
+    log.info("Fun request from %s completed", update.message.chat.username)
+
+
 def button_callback(update, context):
     query = update.callback_query
     log.info("Callback is %s", query.data)
@@ -136,6 +152,7 @@ dispatcher.add_handler(CommandHandler("start", command_start))  # Start command
 dispatcher.add_handler(
     CommandHandler("check", command_queryStation)
 )  # Actual query command
+dispatcher.add_handler(CommandHandler("ask", command_fun))  # Actual query command
 
 
 log.info("Bot started")
