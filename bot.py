@@ -13,7 +13,6 @@ try:  # Only need to run this func in dev env
 except:  # Fail silently in prod
     pass
 TELEGRAM_TOKEN = os.environ["TELEGRAM_API"]  # Load in Telegram bot token
-QUESTION = os.environ["QUESTION"]  # Just for fun :)
 TRAIN_TIME_DATA = loadTrainTimingData(
     "train-timing.json"
 )  # Load data from the json file
@@ -110,10 +109,6 @@ def command_fun(update, context):
         log.info("Ending since query is empty")
         return
     question = " ".join(queryParams)
-    if question.lower() == QUESTION:
-        update.message.reply_text("Yes!")
-    else:
-        update.message.reply_text("I don't know :(")
     log.info("Fun request from %s completed", update.message.from_user.username)
 
 
